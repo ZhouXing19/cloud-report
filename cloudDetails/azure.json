@@ -4,12 +4,21 @@
     "cloud": "azure",
     "machineTypes": {
       "Standard_D8as_v4": null,
+      "Standard_D32as_v4": null,
       "Standard_D8as_v5": null,
+      "Standard_D32as_v5": null,
       "Standard_F8s_v2": null,
+      "Standard_F32s_v2": null,
       "Standard_E8s_v4": null,
+      "Standard_E32s_v4": null,
       "Standard_E8s_v5": null,
+      "Standard_E32s_v5": null,
       "Standard_E8as_v4": null,
-      "Standard_E8as_v5": null
+      "Standard_E32as_v4": null,
+      "Standard_E8as_v5": null,
+      "Standard_E32as_v5": null,
+      "Standard_E8bs_v5": null,
+      "Standard_E32bs_v5": null
     },
     "roachprodArgs": {
       "local-ssd": "false",
@@ -27,12 +36,21 @@
     "cloud": "azure",
     "machineTypes": {
       "Standard_D8as_v4": null,
+      "Standard_D32as_v4": null,
       "Standard_D8as_v5": null,
+      "Standard_D32as_v5": null,
       "Standard_F8s_v2": null,
+      "Standard_F32s_v2": null,
       "Standard_E8s_v4": null,
+      "Standard_E32s_v4": null,
       "Standard_E8s_v5": null,
+      "Standard_E32s_v5": null,
       "Standard_E8as_v4": null,
-      "Standard_E8as_v5": null
+      "Standard_E32as_v4": null,
+      "Standard_E8as_v5": null,
+      "Standard_E32as_v5": null,
+      "Standard_E8bs_v5": null,
+      "Standard_E32bs_v5": null
     },
     "roachprodArgs": {
       "local-ssd": "false",
