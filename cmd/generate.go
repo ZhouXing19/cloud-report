@@ -46,9 +46,11 @@ func init() {
 
 	generateCmd.Flags().StringVarP(&scriptsDir, "scripts-dir", "",
 		"./scripts", "directory containing scripts uploaded to cloud VMs that execute benchmarks.")
+	// We need to define a longer life-time as we introduced vcpu8 machine
+	// types, which start with a low tpcc store number, and take longer to
+	// complete a run.
 	generateCmd.Flags().StringVarP(&lifetime, "lifetime", "l",
-		"4h", "cluster lifetime")
-	generateCmd.Flags().StringVar(&usage, "usage", "cloud-report-2022", "usage label")
+		"6h", "cluster lifetime")
 }
 
 type scriptData struct {
