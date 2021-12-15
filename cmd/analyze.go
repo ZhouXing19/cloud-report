@@ -194,7 +194,9 @@ func (f *fioAnalyzer) analyzeFIO(cloud CloudDetails, machineType string) error {
 	glob := path.Join(cloud.LogDir(), FormatMachineType(machineType), "fio-results.*/success")
 	goodRuns, err := filepath.Glob(glob)
 	if err != nil {
-		return err
+		fmt.Printf("fpr machineType %s, "+
+			"the run for fio was not successful: %v", machineType, err)
+		return nil
 	}
 
 	latest := &fioResults{
@@ -493,7 +495,9 @@ func (n *netAnalyzer) analyzeNetwork(cloud CloudDetails, machineType string) err
 	glob := path.Join(cloud.LogDir(), FormatMachineType(machineType), "netperf-results.*/success")
 	goodRuns, err := filepath.Glob(glob)
 	if err != nil {
-		return err
+		fmt.Printf("fpr machineType %s, "+
+			"the run for network was not successful: %v", machineType, err)
+		return nil
 	}
 
 	for _, r := range goodRuns {
@@ -737,7 +741,9 @@ func (t *tpccAnalyzer) analyzeTPCC(cloud CloudDetails, machineType string) error
 	glob := path.Join(cloud.LogDir(), FormatMachineType(machineType), "tpcc-results.*/success")
 	goodRuns, err := filepath.Glob(glob)
 	if err != nil {
-		return err
+		fmt.Printf("fpr machineType %s, "+
+			"the run for tpcc was not successful: %v", machineType, err)
+		return nil
 	}
 
 	for _, r := range goodRuns {

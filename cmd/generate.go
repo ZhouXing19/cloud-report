@@ -127,9 +127,9 @@ function start_cockroach() {
   fi
 
   if [[ $NODES == 2 ]]; then
-  	roachprod start "$CLUSTER":1 --args="$stores --cache=0.25 --max-sql-memory=0.4"
+  	roachprod start "$CLUSTER":1 --args="$stores --cache=0.25 --max-sql-memory=0.9"
   else
-  	roachprod start "$CLUSTER":1-$((NODES-1)) --args="$stores --cache=0.25 --max-sql-memory=0.4"
+  	roachprod start "$CLUSTER":1-$((NODES-1)) --args="$stores --cache=0.25 --max-sql-memory=0.9"
   fi
 }
 
@@ -475,7 +475,11 @@ func generateCloudScripts(cloud CloudDetails) error {
 				if region, label := analyzeAlterZone(arg); label != "" {
 					templateArgs.AlterNodeLocations[region] = fmt.Sprintf("--%s=%q", label, val)
 				} else if region, label := analyzeAlterImage(arg); label != "" {
-					templateArgs.AlterAmis[region] = fmt.Sprintf("--%s=%q", label, val)
+					if val != "" {
+						templateArgs.AlterAmis[region] = fmt.Sprintf("--%s=%q", label, val)
+					} else {
+						templateArgs.AlterAmis[region] = ""
+					}
 				} else {
 					fmt.Fprintf(buf, "--%s", arg)
 					if len(val) > 0 {
@@ -518,9 +522,10 @@ func analyzeAlterZone(arg string) (string, string) {
 
 // analyzeAlterImage is to parse argument that may contain image information for an alternative region.
 func analyzeAlterImage(arg string) (string, string) {
+	azureImageRegex := regexp.MustCompile(`^(.+)-(azure-image-ami)$`)
 	awsImageRegex := regexp.MustCompile(`^(.+)-(aws-image-ami)$`)
 	gceImageRegex := regexp.MustCompile(`^(.+)-(gce-image)$`)
-	ImageRegex := []*regexp.Regexp{awsImageRegex, gceImageRegex}
+	ImageRegex := []*regexp.Regexp{azureImageRegex, awsImageRegex, gceImageRegex}
 	for _, regex := range ImageRegex {
 		if regex.MatchString(arg) {
 			return regex.FindStringSubmatch(arg)[1], regex.FindStringSubmatch(arg)[2]
