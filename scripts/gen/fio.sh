@@ -29,6 +29,7 @@ done
 
 logdir="$HOME/fio-results"
 
+
 if [ -n "$f_wait" ];
 then
   exec sh -c "

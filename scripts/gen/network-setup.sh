@@ -1,7 +1,6 @@
 #!/bin/bash
 
-
-echo "********** start ***********"
+set -ex
 
 rm -rf newnetperf
 mkdir newnetperf
@@ -33,5 +32,4 @@ sudo sysctl -w net.ipv4.tcp_wmem="4096        16384   32000000"
 
 touch ~/load_success
 
-echo "********** end ***********"
 

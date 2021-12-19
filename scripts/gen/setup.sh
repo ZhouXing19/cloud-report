@@ -20,6 +20,7 @@ packages=(
     libmysqlclient-dev libssl-dev
     libpq-dev cgroup-tools
     fio netperf
+    net-tools
     sysstat unzip jq
 )
 

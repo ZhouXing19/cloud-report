@@ -51,6 +51,7 @@ func init() {
 
 type scriptData struct {
 	CloudDetails
+	User                string
 	Cluster             string
 	Lifetime            string
 	MachineType         string
@@ -67,7 +68,7 @@ const driverTemplate = `#!/bin/bash
 
 CLOUD="{{.CloudDetails.Cloud}}"
 CLUSTER="$CRL_USERNAME-{{.Cluster}}"
-NODES=4
+NODES=2
 TMUX_SESSION="cloud-report"
 WEST_CLUSTER="${CLUSTER}-west"
 WEST_CLUSTER_CREATED=
@@ -82,14 +83,14 @@ exec &> >(tee -a "$logdir/driver.log")
 
 # Create roachprod cluster
 function create_cluster() {
-  roachprod create "$CLUSTER" -n $NODES --lifetime "{{.Lifetime}}" --clouds "$CLOUD" \
+  roachprod create "$CLUSTER" -n $NODES --label usage=cloud-report-2022 --lifetime "{{.Lifetime}}" --clouds "$CLOUD" \
     --$CLOUD-machine-type "{{.MachineType}}" {{.DefaultNodeLocation}} {{.EvaledArgs}} {{.DefaultAmi}}
   roachprod run "$CLUSTER" -- tmux new -s "$TMUX_SESSION" -d
 }
 
 # Create roachprod in us-west2
 function create_west_cluster() {
-  roachprod create "$WEST_CLUSTER" -u $USER -n $NODES --lifetime "4h" --clouds "$CLOUD" \
+  roachprod create "$WEST_CLUSTER" -u $USER -n 1 --label usage=cloud-report-2022 --lifetime "{{.Lifetime}}" --clouds "$CLOUD" \
     --$CLOUD-machine-type "{{.MachineType}}" {{.AlterNodeLocations.west}} {{.EvaledArgs}} {{.AlterAmis.west}}
   roachprod run "$WEST_CLUSTER" -- tmux new -s "$TMUX_SESSION" -d
   WEST_CLUSTER_CREATED=true
@@ -242,23 +243,57 @@ function fetch_bench_tpcc_results() {
   fi
 }
 
+
+function modify_remote_hosts() {
+  # LOCAL is the one that runs netperf
+  LOCAL_CLUSTER=$1
+  REMOTE_CLUSTER=$2
+  IP=$(roachprod ip "$REMOTE_CLUSTER":1)
+  if [ -z $IP ]
+  then
+    echo "CANNOT GET IP FOR REMOTE CLUSTER $REMOTE_CLUSTER"
+    exit 1
+    fi
+  FILENAME="$logdir/$REMOTE_CLUSTER"_remote_hosts
+  printf "REMOTE_HOSTS[0]=$IP\nREMOTE_HOSTS[1]=$IP\nNUM_REMOTE_HOSTS=2\n" >"$FILENAME"
+  chmod 777 "$FILENAME"
+  roachprod run "$LOCAL_CLUSTER":1 -- sudo chmod 777 -R newnetperf
+  roachprod put "$LOCAL_CLUSTER":1 "$FILENAME" newnetperf/netperf/doc/examples/remote_hosts
+}
+
+function get_best_number_streams() {
+  local NODE=$1
+  echo "running getting best num of stream for $NODE"
+  roachprod run "$NODE":1 -- "cd newnetperf/netperf/doc/examples && GET_BEST_STREAM=1 ./runemomniaggdemo.sh"
+  echo "get best number of stream for $NODE"
+  # there should be a num_streams file now
+}
+
 function bench_cross_region_net() {
   create_west_cluster
   upload_scripts "$WEST_CLUSTER"
-  roachprod run ${WEST_CLUSTER}:1 "sudo apt-get update && sudo apt-get -y install netperf"
+  setup_cluster "$WEST_CLUSTER"
 
-  server_ip=$(roachprod ip ${CLUSTER}:1)
+  roachprod run ${CLUSTER}:1 sudo ./scripts/gen/network-setup.sh
+  roachprod run ${WEST_CLUSTER}:1 sudo ./scripts/gen/network-setup.sh
+
+  port=12345
+
+  roachprod run "$WEST_CLUSTER:1" -- "sudo netserver -p $port"
+
+  remote_ip=$(roachprod ip "$WEST_CLUSTER":1)
+
+  modify_remote_hosts ${CLUSTER} ${WEST_CLUSTER}
   
-  port=1337
-  # Server
-  roachprod run ${CLUSTER}:1 ./scripts/gen/network-netperf.sh -- -S -p "$port"
-  # Cient
-  run_under_tmux "cross_region_net" ${WEST_CLUSTER}:1 "./scripts/gen/network-netperf.sh -s $server_ip -p $port $cross_region_net_extra_args"
+  get_best_number_streams ${CLUSTER}
+
+  run_under_tmux "cross-region-net" "$CLUSTER:1" "./scripts/gen/cross-region-network-netperf.sh -s $remote_ip -p $port $cross_region_net_extra_args"
+  
 }
 
 function fetch_bench_cross_region_net_results() {
-  roachprod run ${WEST_CLUSTER}:1 ./scripts/gen/network-netperf.sh -- -w
-  roachprod get ${WEST_CLUSTER}:1 ./netperf-results $(results_dir "netperf-results")
+  roachprod run ${CLUSTER}:1 ./scripts/gen/cross-region-network-netperf.sh -- -w
+  roachprod get ${CLUSTER}:1 ./cross-region-netperf-results $(results_dir "cross-region-netperf-results")
 }
 
 # Destroy roachprod cluster
@@ -434,9 +469,10 @@ func generateCloudScripts(cloud CloudDetails) error {
 
 	scriptTemplate := template.Must(template.New("script").Parse(driverTemplate))
 	for machineType, machineConfig := range cloud.MachineTypes {
-		clusterName := fmt.Sprintf("cldrprt%d-%s-%d",
-			(1+time.Now().Year())%1000, machineType,
-			hashStrings(cloud.Cloud, cloud.Group, reportVersion))
+		clusterName := fmt.Sprintf("cr%d-%s-%s",
+			(1+time.Now().Year())%1000, machineType, cloud.Group,
+		//hashStrings(cloud.Cloud, cloud.Group, reportVersion),
+		)
 		validClusterName := regexp.MustCompile(`[\.|\_]`)
 		clusterName = validClusterName.ReplaceAllString(clusterName, "-")
 
