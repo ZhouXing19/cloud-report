@@ -7,3 +7,8 @@ results/*
 credentials.json
 token.json
 cloudDetails/adhoc.json
+report-data/
+drafts/
+networkStuff/
+netperf/
+logs/

@@ -53,6 +53,10 @@ func (c CloudDetails) ScriptDir() string {
 	return path.Join(c.BasePath(), "scripts")
 }
 
+func (c CloudDetails) CreateDir() string {
+	return path.Join(c.BasePath(), "create")
+}
+
 func (c CloudDetails) LogDir() string {
 	return path.Join(c.BasePath(), "logs")
 }

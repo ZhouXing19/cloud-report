@@ -34,6 +34,7 @@
       "aws-image-ami": "ami-036490d46656c4818",
       "west-aws-image-ami": "ami-0964546d3da97e3ab",
       "local-ssd": "false",
+      "aws-create-rate-limit": "10",
       "aws-enable-multiple-stores": null
     }
   },
@@ -72,6 +73,7 @@
       "aws-image-ami": "ami-036490d46656c4818",
       "west-aws-image-ami": "ami-0964546d3da97e3ab",
       "local-ssd": "false",
+      "aws-create-rate-limit": "10",
       "aws-ebs-iops": "16000",
       "aws-enable-multiple-stores": null
     }
