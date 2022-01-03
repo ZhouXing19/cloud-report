@@ -129,8 +129,8 @@ function load_cockroach() {
   if [ -z "$cockroach_binary" ]
   then
     cockroach_version=$(curl -s -i https://edge-binaries.cockroachdb.com/cockroach/cockroach.linux-gnu-amd64.LATEST |grep location|awk -F"/" '{print $NF}')
-    echo "WARN: staging latest cockroach binary from master: $cockroach_version"
-    roachprod stage "$1" cockroach
+    echo "WARN: staging a stable cockroach binary from master with hash: 5ac733bb4927020bc1c52da24b2591742fde8e1f"
+    roachprod stage "$1" cockroach 5ac733bb4927020bc1c52da24b2591742fde8e1f
   elif [[ $cockroach_binary =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "INFO: staging release version $cockroach_binary of cockroach binary"
     roachprod stage "$1" release "$cockroach_binary"
