@@ -314,7 +314,7 @@ function get_best_number_streams() {
   local NODE=$1
   echo "running getting best num of stream for $NODE"
 
-  roachprod run "$NODE" -- "cd newnetperf/netperf/doc/examples && JANE_STREAM=1 GET_BEST_STREAM=1 ./runemomniaggdemo.sh"
+  roachprod run "$NODE" -- "cd newnetperf/netperf/doc/examples && SEARCH_BEST_NUM_STREAMS=1 ./runemomniaggdemo.sh"
   echo "get best number of stream for $NODE"
   # there should be a num_streams file now
 }
